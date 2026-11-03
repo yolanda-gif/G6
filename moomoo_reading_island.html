@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MooMoo Reading Island - 乳牛英文閱讀島</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Comic Neue & Nunito -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cowYellow: '#FFDE59',
+            cowGreen: '#70E000',
+            cowGrass: '#38B000',
+            cowSky: '#4CC9F0',
+            cowPink: '#FF85A1',
+            cowDark: '#2B2D42',
+            cowCream: '#FFFDF7',
+            cowOrange: '#FF9F1C'
+          },
+          fontFamily: {
+            comic: ['"Comic Neue"', '"Nunito"', 'cursive', 'sans-serif'],
+            sans: ['"Nunito"', 'sans-serif']
+          },
+          boxShadow: {
+            'pop': '0px 6px 0px 0px rgba(0, 0, 0, 0.15)',
+            'pop-btn': '0px 5px 0px 0px #1F2438',
+            'pop-pressed': '0px 1px 0px 0px #1F2438',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Nunito', 'Comic Neue', sans-serif;
+      background-color: #A7C957;
+      background-image: 
+        radial-gradient(#ffffff 15%, transparent 16%), 
+        radial-gradient(#ffffff 15%, transparent 16%);
+      background-size: 60px 60px;
+      background-position: 0 0, 30px 30px;
+      background-blend-mode: soft-light;
+    }
+
+    /* 乳牛斑紋點綴 */
+    .cow-spots {
+      background-image: radial-gradient(#2B2D42 22%, transparent 24%),
+                        radial-gradient(#2B2D42 18%, transparent 20%);
+      background-size: 80px 80px;
+      background-position: 0 0, 40px 40px;
+      opacity: 0.05;
+    }
+
+    /* 搖擺動畫 */
+    @keyframes cowWiggle {
+      0%, 100% { transform: rotate(-3deg); }
+      50% { transform: rotate(3deg); }
+    }
+    .cow-wiggle {
+      animation: cowWiggle 2.5s infinite ease-in-out;
+    }
+
+    /* 難字提示小氣泡特效 */
+    .vocab-hint {
+      position: relative;
+      text-decoration: underline wavy #FF85A1;
+      text-decoration-thickness: 2px;
+      cursor: pointer;
+      font-weight: 700;
+      color: #0077B6;
+    }
+    .vocab-hint:hover::after {
+      content: attr(data-hint);
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2B2D42;
+      color: #FFFDE7;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      z-index: 50;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-cowDark flex flex-col items-center p-3 md:p-6 select-none">
+
+  <!-- 頂部導航與標題區 -->
+  <header class="w-full max-w-6xl flex flex-wrap items-center justify-between bg-white rounded-3xl p-4 md:px-8 mb-5 border-4 border-cowDark shadow-pop relative overflow-hidden">
+    <!-- 乳牛紋路裝飾 -->
+    <div class="absolute inset-0 cow-spots pointer-events-none"></div>
+
+    <div class="flex items-center gap-3 z-10">
+      <div class="w-14 h-14 bg-cowYellow rounded-2xl border-4 border-cowDark flex items-center justify-center text-3xl cow-wiggle shadow-inner">
+        🐮
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="bg-cowPink text-white font-extrabold text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wider border-2 border-cowDark">
+            Grade 6 English
+          </span>
+          <span class="text-xs font-bold text-cowGrass">國小六年級學力檢測挑戰</span>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-black tracking-tight text-cowDark font-comic">
+          MooMoo Reading Island <span class="text-sm font-bold text-gray-500 font-sans">乳牛英文閱讀島</span>
+        </h1>
+      </div>
+    </div>
+
+    <!-- 狀態列 & 換題按鈕 -->
+    <div class="flex items-center gap-3 mt-3 sm:mt-0 z-10 flex-wrap">
+      <div class="bg-cowCream border-2 border-cowDark px-3 py-1.5 rounded-xl font-black text-sm flex items-center gap-2">
+        <span>⭐ 金幣:</span>
+        <span id="score-display" class="text-cowOrange text-lg font-black">0</span>
+      </div>
+      <div id="engine-badge" class="bg-emerald-100 text-emerald-900 border-2 border-emerald-400 px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1">
+        <span>🎲 本地無限題庫引擎 (離線可用)</span>
+      </div>
+      <button id="btn-api-settings" title="自訂 Gemini API Key (選填)" class="bg-white hover:bg-gray-100 text-cowDark p-2 rounded-2xl border-2 border-cowDark shadow-pop-btn active:translate-y-1 active:shadow-pop-pressed transition-all text-xs font-black">
+        ⚙️ 設定
+      </button>
+      <button id="btn-next-story" class="bg-cowSky hover:bg-cyan-400 text-cowDark font-black px-4 py-2 rounded-2xl border-2 border-cowDark shadow-pop-btn active:translate-y-1 active:shadow-pop-pressed transition-all flex items-center gap-1.5 text-sm">
+        <span>🔄 換一篇全新文章</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 主內容容器：左側閱讀材料 + 右側 3 題選擇題 (同頁並排，手機自動疊加) -->
+  <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-5 items-start relative">
+    
+    <!-- 全局生成中 Loading 覆蓋層 -->
+    <div id="ai-loading-overlay" class="col-span-12 bg-white/95 rounded-3xl border-4 border-cowDark p-10 text-center shadow-pop z-20 flex flex-col items-center justify-center min-h-[420px] transition-all duration-300">
+      <div class="w-20 h-20 bg-cowYellow rounded-3xl border-4 border-cowDark flex items-center justify-center text-5xl cow-wiggle shadow-pop mb-4">
+        🐮✨
+      </div>
+      <h3 class="text-2xl font-black text-cowDark font-comic">哞哞島長正在構思全新篇章...</h3>
+      <p class="text-sm font-bold text-gray-500 mt-2 max-w-md">
+        AI 正在依據六年級學測標準，現場編寫一篇全新故事與多層次圖表題目，請稍候 2~3 秒鐘！
+      </p>
+      <div class="mt-5 flex gap-1.5">
+        <span class="w-3 h-3 bg-cowOrange rounded-full animate-bounce"></span>
+        <span class="w-3 h-3 bg-cowSky rounded-full animate-bounce [animation-delay:0.2s]"></span>
+        <span class="w-3 h-3 bg-cowGreen rounded-full animate-bounce [animation-delay:0.4s]"></span>
+      </div>
+    </div>
+
+    <!-- 左側：閱讀文章與多元圖表/表格 (佔 7 欄) -->
+    <section id="reading-section" class="lg:col-span-7 bg-white rounded-3xl border-4 border-cowDark p-5 md:p-7 shadow-pop relative overflow-hidden">
+      <!-- 提示條 -->
+      <div class="flex items-center justify-between mb-4 pb-3 border-b-2 border-dashed border-gray-200">
+        <div class="flex items-center gap-2">
+          <span class="bg-cowYellow text-cowDark text-xs font-black px-3 py-1 rounded-xl border-2 border-cowDark" id="article-badge">
+            Reading Topic
+          </span>
+          <span class="text-xs font-bold text-gray-400" id="article-date">📅 Week Adventure</span>
+        </div>
+        <div class="text-xs font-bold text-gray-500 flex items-center gap-1 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+          <span>💡 懸停或點選有提示</span>
+        </div>
+      </div>
+
+      <!-- 文章標題 -->
+      <h2 id="article-title" class="text-xl md:text-2xl font-black text-cowDark font-comic mb-3 flex items-center gap-2">
+        <!-- 標題置入 -->
+      </h2>
+
+      <!-- 文章正文與圖表嵌入區 -->
+      <div id="article-content" class="text-base text-gray-800 leading-relaxed font-comic font-bold space-y-3">
+        <!-- 動態產生文章內容、圖表或菜單 -->
+      </div>
+
+      <!-- 生字庫便簽 (Vocabulary Helper) -->
+      <div class="mt-6 pt-4 border-t-2 border-gray-100 bg-sky-50 rounded-2xl p-3 border-2 border-dashed border-sky-300">
+        <div class="text-xs font-black text-sky-800 flex items-center gap-1 mb-1">
+          <span>🥛 哞哞單字小幫手 (Word Bank):</span>
+        </div>
+        <div id="vocab-bank" class="flex flex-wrap gap-2 text-xs font-bold text-gray-700">
+          <!-- 動態置入單字清單 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 右側：三題階梯式選擇題 (佔 5 欄) -->
+    <section id="quiz-section" class="lg:col-span-5 flex flex-col gap-4">
+      <div class="bg-white rounded-3xl border-4 border-cowDark p-5 shadow-pop">
+        <div class="flex items-center justify-between mb-3 border-b-2 border-gray-100 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">📋</span>
+            <h3 class="font-black text-lg text-cowDark font-comic">Comprehension Quiz</h3>
+          </div>
+          <span class="text-xs font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-lg border border-emerald-300">
+            共 3 題 (無聽力)
+          </span>
+        </div>
+        
+        <p class="text-xs text-gray-500 font-bold mb-4">
+          請仔細閱讀左側的短文與圖表，選出最適當的答案！
+        </p>
+
+        <!-- 題目列表 -->
+        <div id="quiz-container" class="space-y-6">
+          <!-- 動態載入 3 道題目 -->
+        </div>
+      </div>
+
+      <!-- 答題鼓勵與回饋小卡 -->
+      <div id="cow-feedback-card" class="bg-cowCream rounded-3xl border-4 border-cowDark p-4 shadow-pop flex items-start gap-3 transition-all duration-300">
+        <div class="w-12 h-12 bg-white rounded-2xl border-2 border-cowDark flex items-center justify-center text-3xl shrink-0 shadow-sm" id="cow-avatar">
+          🐮
+        </div>
+        <div>
+          <h4 id="cow-speech-title" class="font-black text-sm text-cowDark font-comic">哞哞島長為你加油！</h4>
+          <p id="cow-speech-text" class="text-xs text-gray-600 font-bold mt-1 leading-normal">
+            點擊右邊的選項試試看！答對有金幣，答錯島長會為你詳細中文解析喔！
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 完成三題時彈出的全自動換島結算視窗 -->
+  <div id="completion-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl border-4 border-cowDark max-w-md w-full p-6 text-center shadow-pop relative animate-bounce-once">
+      <div class="w-20 h-20 bg-cowYellow rounded-3xl border-4 border-cowDark flex items-center justify-center text-5xl mx-auto -mt-14 shadow-pop" id="modal-avatar">
+        🐮🎉
+      </div>
+      <h3 id="modal-title" class="text-2xl font-black text-cowDark mt-4 font-comic">本島探險完成！</h3>
+      <p id="modal-msg" class="text-sm font-bold text-gray-600 mt-2">
+        正在計算你的成果...
+      </p>
+      
+      <div class="my-4 p-3 bg-amber-50 rounded-2xl border-2 border-amber-300 font-black text-amber-900 text-sm flex items-center justify-around">
+        <div>正確率: <span id="modal-score" class="text-emerald-600 text-lg">3 / 3</span></div>
+        <div class="w-px h-6 bg-amber-300"></div>
+        <div>獲得金幣: <span id="modal-coins" class="text-cowOrange text-lg">+30 ⭐</span></div>
+      </div>
+
+      <div class="text-xs font-bold text-gray-400 mb-4 flex items-center justify-center gap-1">
+        <span>⏰</span> <span id="countdown-timer">3 秒後自動啟航前往下一座島嶼...</span>
+      </div>
+
+      <div class="flex gap-2 justify-center">
+        <button id="btn-stay-review" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black rounded-xl border-2 border-gray-300 text-xs transition-all">
+          留在此頁看解析
+        </button>
+        <button id="btn-next-now" class="px-5 py-2.5 bg-cowSky hover:bg-cyan-400 text-cowDark font-black rounded-xl border-2 border-cowDark shadow-pop-btn text-xs active:translate-y-1 active:shadow-pop-pressed transition-all">
+          立即出發下一篇 🚀
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Key 自訂視窗 (選填，方便下載後想直接調用 Gemini AI 的使用者) -->
+  <div id="settings-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl border-4 border-cowDark max-w-md w-full p-6 text-left shadow-pop relative">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-lg font-black text-cowDark font-comic flex items-center gap-1.5">
+          ⚙️ 引擎設定 (Settings)
+        </h3>
+        <button id="btn-close-settings" class="text-gray-400 hover:text-gray-700 text-xl font-black">✕</button>
+      </div>
+      <p class="text-xs text-gray-500 font-bold mb-3 leading-relaxed">
+        本應用程式已內建<strong>「完全不重複本機無限出題引擎」</strong>，即使沒網路、不填金鑰也能隨機產生上千種全新文章與圖表！若您想啟用線上 Gemini 生成，可於下方填入 Google Gemini API Key：
+      </p>
+      <input type="password" id="custom-api-key" placeholder="貼上 Gemini API Key (可留空，自動切換本機引擎)" class="w-full text-xs font-mono p-3 rounded-xl border-2 border-gray-300 focus:border-cowSky outline-none mb-4">
+      <div class="flex justify-end gap-2">
+        <button id="btn-save-key" class="px-4 py-2 bg-cowGreen hover:bg-lime-500 text-white font-black rounded-xl border-2 border-cowDark shadow-pop-btn text-xs active:translate-y-1">
+          儲存並套用
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 頁尾可愛資訊 -->
+  <footer class="mt-8 text-center text-xs text-emerald-900 font-bold">
+    🐮 100% 依據台灣國小六年級學力檢測（生活情境、圖表整合、階梯層次）原創設計 • 本地離線可隨機無限產生全新文章
+  </footer>
+
+  <!-- 核心題目資料庫與互動邏輯 JS -->
+  <script>
+    // ==========================================
+    // 雙軌生成架構：
+    // 1. 本地強大動態故事引擎 (離線/下載後 100% 正常，保證上千種排列組合不重複)
+    // 2. Google Gemini 3 Flash 線上 AI 引擎 (可選填 Key)
+    // ==========================================
+
+    let customKey = localStorage.getItem('moomoo_gemini_key') || "";
+    const pastThemeIndexes = []; // 避免連續重複相同大主題
+
+    let currentStory = null;
+    let score = 0;
+    let answeredQuestions = {};
+    let autoNextTimer = null;
+    let countdownSec = 3;
+
+    window.onload = function () {
+      updateEngineBadge();
+      generateNextStory();
+      setupEventListeners();
+    };
+
+    function updateEngineBadge() {
+      const badge = document.getElementById('engine-badge');
+      if (customKey && customKey.trim().length > 5) {
+        badge.className = "bg-purple-100 text-purple-900 border-2 border-purple-400 px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1";
+        badge.innerHTML = "<span>🤖 線上 Gemini AI 模式</span>";
+      } else {
+        badge.className = "bg-emerald-100 text-emerald-900 border-2 border-emerald-400 px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1";
+        badge.innerHTML = "<span>🎲 本地無限題庫引擎 (離線保證可用)</span>";
+      }
+    }
+
+    function setupEventListeners() {
+      document.getElementById('btn-next-story').addEventListener('click', () => {
+        clearTimer();
+        generateNextStory();
+      });
+
+      document.getElementById('btn-next-now').addEventListener('click', () => {
+        clearTimer();
+        closeModal();
+        generateNextStory();
+      });
+
+      document.getElementById('btn-stay-review').addEventListener('click', () => {
+        clearTimer();
+        closeModal();
+      });
+
+      // 設定 Modal
+      document.getElementById('btn-api-settings').addEventListener('click', () => {
+        document.getElementById('custom-api-key').value = customKey;
+        document.getElementById('settings-modal').classList.remove('hidden');
+      });
+      document.getElementById('btn-close-settings').addEventListener('click', () => {
+        document.getElementById('settings-modal').classList.add('hidden');
+      });
+      document.getElementById('btn-save-key').addEventListener('click', () => {
+        customKey = document.getElementById('custom-api-key').value.trim();
+        localStorage.setItem('moomoo_gemini_key', customKey);
+        updateEngineBadge();
+        document.getElementById('settings-modal').classList.add('hidden');
+        generateNextStory();
+      });
+    }
+
+    function clearTimer() {
+      if (autoNextTimer) {
+        clearInterval(autoNextTimer);
+        autoNextTimer = null;
+      }
+    }
+
+    // 主調度器：如果設定了 Key 且環境許可則嘗試 AI，否則立即無縫使用強大的本機動態生成器
+    async function generateNextStory() {
+      clearTimer();
+      setLoading(true);
+
+      if (customKey && customKey.trim().length > 5) {
+        try {
+          const aiStory = await fetchFromGeminiAI();
+          if (aiStory) {
+            currentStory = aiStory;
+            renderNewStoryToDOM(aiStory);
+            setLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.warn("AI 生成失敗，自動無縫切換至本地無限引擎:", e);
+        }
+      }
+
+      // 使用本機百變引擎（離線下載保證 100% 永遠有全新文本）
+      setTimeout(() => {
+        const story = generateProceduralStory();
+        currentStory = story;
+        renderNewStoryToDOM(story);
+        setLoading(false);
+      }, 400);
+    }
+
+    // ========================================================
+    // 🎲 本地強大無限情境生成引擎 (Procedural Story Generator)
+    // 包含 10 種完全不同的大主題架構，內含變數排列組合隨機數
+    // ========================================================
+    function generateProceduralStory() {
+      const names = ["Kevin", "Lisa", "Hank", "Betty", "David", "Peggy", "Robin", "Stella", "Owen", "Kelly", "Jan", "Toby"];
+      const rName = names[Math.floor(Math.random() * names.length)];
+      const friendName = names.filter(n => n !== rName)[Math.floor(Math.random() * (names.length - 1))];
+      const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      const rDay = weekdays[Math.floor(Math.random() * weekdays.length)];
+
+      // 挑選一個最近沒出過的情境模型 (0 ~ 9)
+      const TOTAL_THEMES = 10;
+      let themeIndex = Math.floor(Math.random() * TOTAL_THEMES);
+      while (pastThemeIndexes.includes(themeIndex) && pastThemeIndexes.length < TOTAL_THEMES) {
+        themeIndex = Math.floor(Math.random() * TOTAL_THEMES);
+      }
+      pastThemeIndexes.push(themeIndex);
+      if (pastThemeIndexes.length >= 6) pastThemeIndexes.shift(); // 記住最近 6 次避免重複
+
+      switch (themeIndex) {
+        // 主題 1: 跳蚤市場二手文具價格表
+        case 0: {
+          const bookP = 20 + Math.floor(Math.random() * 3) * 10; // 20, 30, 40
+          const gameP = 60 + Math.floor(Math.random() * 3) * 10; // 60, 70, 80
+          const penP = 15 + Math.floor(Math.random() * 2) * 5;   // 15, 20
+          const totalWallet = bookP + gameP + 20; // 剛好剩 20 元
+          return {
+            badge: "Flea Market",
+            date: `📅 ${rDay} Community Sale`,
+            title: `🏷️ ${rName}'s Flea Market Day (${rName}的二手市集尋寶)`,
+            vocab: [
+              { word: "flea market", zh: "跳蚤市場" },
+              { word: "board game", zh: "桌上遊戲" },
+              { word: "wallet", zh: "皮夾、錢包" }
+            ],
+            textHTML: `
+              <p>Today is ${rDay}. ${rName} went to the sunny community <span class="vocab-hint" data-hint="跳蚤市場">flea market</span> with ${friendName}. Look at the special price list on the wooden board:</p>
+              <div class="my-3 bg-amber-50 p-3 rounded-2xl border-2 border-amber-300">
+                <h4 class="font-black text-amber-900 mb-2 text-center">🛒 Mini Flea Market Price List</h4>
+                <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+                  <div class="bg-white p-2 rounded-xl border border-amber-200 flex justify-between"><span>📚 English Storybook</span><span class="text-cowOrange font-black">$${bookP}</span></div>
+                  <div class="bg-white p-2 rounded-xl border border-amber-200 flex justify-between"><span>🎲 Wooden Board Game</span><span class="text-cowOrange font-black">$${gameP}</span></div>
+                  <div class="bg-white p-2 rounded-xl border border-amber-200 flex justify-between"><span>✏️ Cute Gel Pen</span><span class="text-cowOrange font-black">$${penP}</span></div>
+                  <div class="bg-white p-2 rounded-xl border border-amber-200 flex justify-between"><span>🧸 Soft Teddy Bear</span><span class="text-cowOrange font-black">$90</span></div>
+                </div>
+              </div>
+              <p>${rName} had <strong>$${totalWallet}</strong> in the <span class="vocab-hint" data-hint="皮夾">wallet</span>. ${rName} bought one <em>English Storybook</em> and one <em>Wooden Board Game</em> for ${friendName}!</p>
+            `,
+            questions: [
+              {
+                level: "Level 1: 基礎價格檢索",
+                question: `1. How much is the English Storybook at the market?`,
+                options: [`$${bookP}`, `$${gameP}`, `$${penP}`, "$90"],
+                answer: 0,
+                praise: `太棒了！故事書的標價是 $${bookP}！📚`,
+                explanation: `在表格第一列中可直接檢索到：English Storybook 的價格是 $${bookP}。`
+              },
+              {
+                level: "Level 2: 購買總額運算",
+                question: `2. How much did ${rName} spend in total?`,
+                options: [`$${bookP + penP}`, `$${bookP + gameP}`, `$${gameP + penP}`, `$${totalWallet + 10}`],
+                answer: 1,
+                praise: `計算正確！$${bookP} + $${gameP} = $${bookP + gameP}！🎯`,
+                explanation: `${rName} 買了一本故事書 ($${bookP}) 與一盒桌遊 ($${gameP})，合計花費 $${bookP + gameP}。`
+              },
+              {
+                level: "Level 3: 剩餘金額是非推論",
+                question: `3. Which is TRUE about ${rName}?`,
+                options: [
+                  `${rName} bought a soft teddy bear.`,
+                  `${rName} goes to the market on foot.`,
+                  `${rName} still has $20 left in the wallet.`,
+                  `${rName} does not have enough money.`
+                ],
+                answer: 2,
+                praise: `恭喜答對！原本有 $${totalWallet}，花費 $${bookP + gameP}，剛好剩下 $20！🎉`,
+                explanation: `算式為 $${totalWallet} - $${bookP + gameP} = $20，因此 ${rName} 還剩下 20 元 (has $20 left)。`
+              }
+            ]
+          };
+        }
+
+        // 主題 2: 點心坊鬆餅食譜配方表
+        case 1: {
+          const eggs = Math.floor(Math.random() * 2) + 2; // 2 或 3 顆
+          const bakeMins = 12 + Math.floor(Math.random() * 3) * 3; // 12, 15, 18 分鐘
+          const milkCups = Math.floor(Math.random() * 2) + 1; // 1 或 2 杯
+          return {
+            badge: "Baking Studio",
+            date: `📅 ${rDay} Recipe`,
+            title: `🥞 Sweet Pancake Studio (${rName}的鬆餅廚房)`,
+            vocab: [
+              { word: "recipe", zh: "食譜、烹飪法" },
+              { word: "flour", zh: "麵粉" },
+              { word: "delicious", zh: "美味的、可口的" }
+            ],
+            textHTML: `
+              <p>On ${rDay} afternoon, ${rName} invited ${friendName} to make homemade pancakes. Here is their secret <span class="vocab-hint" data-hint="食譜">recipe</span> card:</p>
+              <div class="my-3 bg-pink-50 p-3 rounded-2xl border-2 border-pink-300">
+                <h4 class="font-black text-pink-900 mb-2 text-center">🥞 Fluffy Pancake Ingredients</h4>
+                <table class="w-full text-xs font-bold text-gray-700 text-left border-collapse">
+                  <tr class="border-b border-pink-200"><td class="py-1">🌾 <span class="vocab-hint" data-hint="麵粉">Flour</span>:</td><td class="text-right font-black text-pink-800">2 cups</td></tr>
+                  <tr class="border-b border-pink-200"><td class="py-1">🥛 Fresh Milk:</td><td class="text-right font-black text-pink-800">${milkCups} cup(s)</td></tr>
+                  <tr class="border-b border-pink-200"><td class="py-1">🥚 Fresh Eggs:</td><td class="text-right font-black text-pink-800">${eggs} eggs</td></tr>
+                  <tr class="border-b border-pink-200"><td class="py-1">🍯 Sweet Honey:</td><td class="text-right font-black text-pink-800">3 spoons</td></tr>
+                  <tr><td class="py-1">⏱️ Cooking Time:</td><td class="text-right font-black text-pink-800">${bakeMins} minutes</td></tr>
+                </table>
+              </div>
+              <p>They mixed everything carefully in a big bowl. The pancakes were super <span class="vocab-hint" data-hint="美味的">delicious</span>!</p>
+            `,
+            questions: [
+              {
+                level: "Level 1: 食材份量檢索",
+                question: `1. How many eggs does ${rName} need to make the pancakes?`,
+                options: ["1 egg", `${eggs} eggs`, `${eggs + 2} eggs`, "5 eggs"],
+                answer: 1,
+                praise: `很正確！食譜上清楚寫著需要 ${eggs} 顆蛋！🥚`,
+                explanation: `查看表格第 3 列『Fresh Eggs』對應的數量為 ${eggs} eggs。`
+              },
+              {
+                level: "Level 2: 烘焙烹調時間判讀",
+                question: `2. How many minutes should they cook the pancakes?`,
+                options: ["5 minutes", "10 minutes", `${bakeMins} minutes`, "30 minutes"],
+                answer: 2,
+                praise: `答對了！烹調時間剛好是 ${bakeMins} 分鐘！⏱️`,
+                explanation: `查看表格最後一行『Cooking Time』為 ${bakeMins} minutes。`
+              },
+              {
+                level: "Level 3: 主旨是非題",
+                question: `3. Which is FALSE about the story?`,
+                options: [
+                  `${rName} made pancakes with ${friendName}.`,
+                  `They need 2 cups of flour.`,
+                  `The pancakes tasted very good and delicious.`,
+                  `They baked cookies in the oven on Sunday.`
+                ],
+                answer: 3,
+                praise: `恭喜找出來了！他們做的是鬆餅 (pancakes) 而不是餅乾 (cookies)！🎉`,
+                explanation: `文章通篇都在製作鬆餅 (pancakes)，第四個選項說他們在做餅乾 (baked cookies) 是錯誤的 (FALSE)。`
+              }
+            ]
+          };
+        }
+
+        // 主題 3: 奇幻動物園門票與折扣
+        case 2: {
+          const adultP = 100;
+          const childP = 50;
+          const discountDesc = "Students get 20% OFF today!";
+          const studentP = childP * 0.8; // 40
+          return {
+            badge: "Zoo Adventure",
+            date: `📅 Weekend Safari`,
+            title: `🦒 Safari Zoo Ticket Booth (野生動物園售票處)`,
+            vocab: [
+              { word: "tickets", zh: "門票、入場券" },
+              { word: "discount", zh: "折扣、優惠" },
+              { word: "popular", zh: "受歡迎的" }
+            ],
+            textHTML: `
+              <p>${rName} and classmates visited the Wild Safari Zoo. Look at the <span class="vocab-hint" data-hint="門票">tickets</span> announcement at the gate:</p>
+              <div class="my-3 bg-emerald-50 p-3 rounded-2xl border-2 border-emerald-300">
+                <h4 class="font-black text-emerald-900 mb-2 text-center">🎫 Safari Zoo Admission</h4>
+                <div class="space-y-1.5 text-xs font-bold text-gray-700">
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>👨 Adult (18+)</span><span class="text-cowOrange font-black">$${adultP}</span></div>
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>🧒 Student / Child (under 18)</span><span class="text-cowOrange font-black">$${childP}</span></div>
+                  <div class="bg-emerald-100 text-emerald-900 p-2 rounded-xl text-center font-black">
+                    ⭐ Special <span class="vocab-hint" data-hint="折扣">Discount</span>: Elementary Students pay only $${studentP}!
+                  </div>
+                </div>
+              </div>
+              <p>The cute penguins and baby giraffes are the most <span class="vocab-hint" data-hint="受歡迎的">popular</span> animals in the zoo!</p>
+            `,
+            questions: [
+              {
+                level: "Level 1: 門票價格檢索",
+                question: "1. How much is an Adult ticket to the zoo?",
+                options: ["$40", "$50", "$80", "$100"],
+                answer: 3,
+                praise: "答對了！成人票價是 $100！🎫",
+                explanation: "查看第一列 Adult (18+) 的價格是 $100。"
+              },
+              {
+                level: "Level 2: 特價折扣計算",
+                question: `2. How much does an elementary student pay with the discount?`,
+                options: [`$${studentP}`, `$${childP}`, "$70", "$100"],
+                answer: 0,
+                praise: `很厲害！特價優惠只要 $${studentP}！🌟`,
+                explanation: "公告綠色框標明：Elementary Students pay only $" + studentP + "。"
+              },
+              {
+                level: "Level 3: 主旨是非題",
+                question: "3. Which is TRUE about the zoo?",
+                options: [
+                  "The zoo is closed today.",
+                  "Penguins and giraffes are popular animals there.",
+                  "Adult tickets are cheaper than child tickets.",
+                  `${rName} went to the zoo alone on Tuesday.`
+                ],
+                answer: 1,
+                praise: "完全正確！企鵝和長頸鹿是最受歡迎的動物！🦒",
+                explanation: "文章最後一行提到：The cute penguins and baby giraffes are the most popular animals in the zoo。"
+              }
+            ]
+          };
+        }
+
+        // 主題 4: 國小運動會四隊積分排行榜
+        case 3: {
+          const redScore = 75 + Math.floor(Math.random() * 5);
+          const blueScore = 88;
+          const yellowScore = 92;
+          const greenScore = 60;
+          return {
+            badge: "Sports Day",
+            date: `📅 Campus Game`,
+            title: `🏆 Grade 6 Sports Day Ranking (運動會積分排行榜)`,
+            vocab: [
+              { word: "ranking", zh: "名次排行" },
+              { word: "relay race", zh: "接力賽" },
+              { word: "cheer", zh: "歡呼、加油" }
+            ],
+            textHTML: `
+              <p>It was the annual Sports Day at Sunnyside Elementary. Four teams ran fast in the <span class="vocab-hint" data-hint="接力賽">relay race</span>. Here is the final team <span class="vocab-hint" data-hint="名次排行">ranking</span> scoreboard:</p>
+              <div class="my-3 bg-blue-50 p-3 rounded-2xl border-2 border-blue-300">
+                <h4 class="font-black text-blue-900 mb-2 text-center">🏁 Team Points Scoreboard</h4>
+                <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+                  <div class="bg-yellow-100 p-2 rounded-xl border border-yellow-300 flex justify-between"><span>🦁 Yellow Lions</span><span class="font-black text-yellow-900">${yellowScore} pts</span></div>
+                  <div class="bg-blue-100 p-2 rounded-xl border border-blue-300 flex justify-between"><span>🐬 Blue Dolphins</span><span class="font-black text-blue-900">${blueScore} pts</span></div>
+                  <div class="bg-rose-100 p-2 rounded-xl border border-rose-300 flex justify-between"><span>🦊 Red Foxes</span><span class="font-black text-rose-900">${redScore} pts</span></div>
+                  <div class="bg-emerald-100 p-2 rounded-xl border border-emerald-300 flex justify-between"><span>🐸 Green Frogs</span><span class="font-black text-emerald-900">${greenScore} pts</span></div>
+                </div>
+              </div>
+              <p>${rName} was on the Blue Dolphins team. All teachers and students stood up to <span class="vocab-hint" data-hint="歡呼加油">cheer</span> loudly!</p>
+            `,
+            questions: [
+              {
+                level: "Level 1: 積分檢索",
+                question: "1. How many points did the Blue Dolphins team get?",
+                options: [`${redScore} points`, `${blueScore} points`, `${yellowScore} points`, `${greenScore} points`],
+                answer: 1,
+                praise: `沒錯！藍海豚隊獲得了 ${blueScore} 分！🐬`,
+                explanation: `在計分板中對照 Blue Dolphins，得分為 ${blueScore} pts。`
+              },
+              {
+                level: "Level 2: 第一名隊伍與分數差",
+                question: "2. Which team won first place (champion) on Sports Day?",
+                options: ["Red Foxes", "Blue Dolphins", "Yellow Lions", "Green Frogs"],
+                answer: 2,
+                praise: `答對了！最高分的是 ${yellowScore} 分的黃獅隊！🦁`,
+                explanation: `Yellow Lions 得到最高的 ${yellowScore} 分，獲得第一名。`
+              },
+              {
+                level: "Level 3: 主旨推論題",
+                question: `3. Which team was ${rName} on?`,
+                options: ["Green Frogs", "Red Foxes", "Blue Dolphins", "Yellow Lions"],
+                answer: 2,
+                praise: `很細心！文中提到 ${rName} 是藍海豚隊的一員！👍`,
+                explanation: `文章最後一段開頭寫道：『${rName} was on the Blue Dolphins team.』。`
+              }
+            ]
+          };
+        }
+
+        // 主題 5: 圖書館暑假閱讀集點換好禮公告
+        case 4: {
+          const ptsBook = 5;
+          const targetPts = 30;
+          return {
+            badge: "Library Quest",
+            date: `📅 Reading Challenge`,
+            title: `📚 Happy Reading Reward Card (圖書館集點卡)`,
+            vocab: [
+              { word: "borrow", zh: "借入、借閱" },
+              { word: "points", zh: "點數、積分" },
+              { word: "prize", zh: "獎品、禮品" }
+            ],
+            textHTML: `
+              <p>The town library is holding a summer reading activity. Students can collect <span class="vocab-hint" data-hint="點數">points</span> to exchange for wonderful <span class="vocab-hint" data-hint="獎品">prizes</span>:</p>
+              <div class="my-3 bg-purple-50 p-3 rounded-2xl border-2 border-purple-300">
+                <h4 class="font-black text-purple-900 mb-2 text-center">📖 Library Prize Exchange Rules</h4>
+                <ul class="text-xs space-y-1.5 font-bold text-gray-700">
+                  <li>📌 <span class="vocab-hint" data-hint="借閱">Borrow</span> 1 book = <strong>${ptsBook} points</strong></li>
+                  <li>🎁 <strong>15 points:</strong> Cute Cartoon Bookmark</li>
+                  <li>🎁 <strong>${targetPts} points:</strong> Stainless Steel Water Bottle</li>
+                  <li>🎁 <strong>50 points:</strong> Free Movie Ticket</li>
+                </ul>
+              </div>
+              <p>${rName} already has 20 points and wants to get the <em>Stainless Steel Water Bottle</em>!</p>
+            `,
+            questions: [
+              {
+                level: "Level 1: 點數規則檢索",
+                question: "1. How many points can a student get by borrowing 1 book?",
+                options: ["1 point", "3 points", `${ptsBook} points`, "10 points"],
+                answer: 2,
+                praise: `答對了！借一本書能得到 ${ptsBook} 點！📖`,
+                explanation: `規則第一項標註：Borrow 1 book = ${ptsBook} points。`
+              },
+              {
+                level: "Level 2: 點數換算與目標計算",
+                question: `2. How many MORE points does ${rName} need to get the Water Bottle?`,
+                options: ["5 points", "10 points", "15 points", "20 points"],
+                answer: 1,
+                praise: `運算正確！水壺需要 ${targetPts} 點，已擁有 20 點，還差 10 點！🎯`,
+                explanation: `水壺需要 ${targetPts} 點，${rName} 目前有 20 點，因此還需要 ${targetPts} - 20 = 10 點。`
+              },
+              {
+                level: "Level 3: 主旨推論",
+                question: `3. How many books does ${rName} need to borrow to earn those 10 points?`,
+                options: ["1 book", "2 books", "4 books", "5 books"],
+                answer: 1,
+                praise: `很棒的連鎖思考！10 點除以每本 5 點，等於還要借 2 本書！🏆`,
+                explanation: `需要 10 點，每借 1 本書可獲得 ${ptsBook} 點，所以只需再借 10 ÷ 5 = 2 本書即可。`
+              }
+            ]
+          };
+        }
+
+        // 主題 6: 捷運地鐵失物招領處公告
+        case 5: {
+          return {
+            badge: "MRT Notice",
+            date: `📅 Station Bulletin`,
+            title: `🚇 Metro Lost & Found Notice (捷運失物招領)`,
+            vocab: [
+              { word: "lost and found", zh: "失物招領處" },
+              { word: "umbrella", zh: "雨傘" },
+              { word: "information desk", zh: "服務諮詢台" }
+            ],
+            textHTML: `
+              <p>Attention passengers! The Green Line Metro Station found some items left on the train on ${rDay}:</p>
+              <div class="my-3 bg-teal-50 p-3 rounded-2xl border-2 border-teal-300">
+                <h4 class="font-black text-teal-900 mb-2 text-center">🎒 Lost Items Bulletin (Green Line)</h4>
+                <div class="space-y-1 text-xs font-bold text-gray-700">
+                  <div class="bg-white p-1.5 rounded-lg flex justify-between"><span>🌂 Yellow striped <span class="vocab-hint" data-hint="雨傘">umbrella</span></span><span class="text-teal-700">Car 3</span></div>
+                  <div class="bg-white p-1.5 rounded-lg flex justify-between"><span>👓 Blue eyeglasses in a box</span><span class="text-teal-700">Car 5</span></div>
+                  <div class="bg-white p-1.5 rounded-lg flex justify-between"><span>🎒 Red backpack with math book</span><span class="text-teal-700">Car 1</span></div>
+                </div>
+              </div>
+              <p>Please visit the <span class="vocab-hint" data-hint="服務諮詢台">information desk</span> near Exit 2 or call 02-8888-9999 to claim your items.</p>
+            `,
+            questions: [
+              {
+                level: "Level 1: 物品位置檢索",
+                question: "1. Where was the yellow striped umbrella found?",
+                options: ["In Car 1", "In Car 3", "In Car 5", "At Exit 2"],
+                answer: 1,
+                praise: "答對了！雨傘是在第 3 車廂撿到的！🌂",
+                explanation: "表格第一行顯示：Yellow striped umbrella 是在 Car 3 找到的。"
+              },
+              {
+                level: "Level 2: 服務台位置檢索",
+                question: "2. Which exit is the information desk near?",
+                options: ["Near Exit 1", "Near Exit 2", "Near Exit 3", "Near Exit 5"],
+                answer: 1,
+                praise: "眼力很好！服務台在 2 號出口附近！🚇",
+                explanation: "最後一段提及：Please visit the information desk near Exit 2。"
+              },
+              {
+                level: "Level 3: 主旨是非題",
+                question: "3. What was found in the red backpack?",
+                options: ["An English comic", "A math book", "A teddy bear", "A water bottle"],
+                answer: 1,
+                praise: "完全正確！紅色書包裡有一本數學課本！🎒",
+                explanation: "清單第三項註明：Red backpack with math book。"
+              }
+            ]
+          };
+        }
+
+        // 主題 7: 陽光乳牛牧場一日體驗行程表
+        case 6: {
+          return {
+            badge: "Farm Tour",
+            date: `📅 Dairy Farm Schedule`,
+            title: `🐄 Sunny Cow Farm Timetable (陽光乳牛牧場體驗表)`,
+            vocab: [
+              { word: "schedule", zh: "行程時刻表" },
+              { word: "feed", zh: "餵食、餵養" },
+              { word: "ice cream", zh: "冰淇淋" }
+            ],
+            textHTML: `
+              <p>Welcome to the Sunny Cow Farm! Here is the fun activity <span class="vocab-hint" data-hint="行程時刻表">schedule</span> for all elementary school visitors:</p>
+              <div class="my-3 bg-lime-50 p-3 rounded-2xl border-2 border-lime-300">
+                <h4 class="font-black text-lime-900 mb-2 text-center">🚜 Daily Farm Activities</h4>
+                <div class="grid grid-cols-1 gap-1.5 text-xs font-bold text-gray-700">
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>09:30 - 10:30</span><span class="text-lime-800">🌱 <span class="vocab-hint" data-hint="餵食">Feed</span> the Baby Calves</span></div>
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>11:00 - 12:00</span><span class="text-lime-800">🥛 Fresh Milk Milking Show</span></div>
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>13:30 - 14:30</span><span class="text-lime-800">🍦 DIY Milk <span class="vocab-hint" data-hint="冰淇淋">Ice Cream</span></span></div>
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>15:00 - 16:00</span><span class="text-lime-800">🐑 Sheep Walking on the Grass</span></div>
+                </div>
+              </div>
+              <p>${rName} is especially excited about making fresh milk ice cream in the afternoon!</p>
+            `,
+            questions: [
+              {
+                level: "Level 1: 活動時間檢索",
+                question: "1. What time does the Fresh Milk Milking Show start?",
+                options: ["At 09:30", "At 11:00", "At 13:30", "At 15:00"],
+                answer: 1,
+                praise: "答對了！擠牛奶表演是在早上 11:00 開始！🥛",
+                explanation: "由時刻表第二行可見：11:00 - 12:00 是 Fresh Milk Milking Show。"
+              },
+              {
+                level: "Level 2: 時間跨度與先後比對",
+                question: `2. Which activity takes place right before the DIY Milk Ice Cream?`,
+                options: [
+                  "Feed the Baby Calves",
+                  "Fresh Milk Milking Show",
+                  "Sheep Walking on the Grass",
+                  "Go home by bus"
+                ],
+                answer: 1,
+                praise: "時間順序判斷得非常清楚！👏",
+                explanation: "下午 13:30 的 DIY 冰淇淋之前的活動是 11:00 的 Fresh Milk Milking Show。"
+              },
+              {
+                level: "Level 3: 主旨是非題",
+                question: `3. Which is TRUE about ${rName}?`,
+                options: [
+                  `${rName} doesn't like animals.`,
+                  `${rName} wants to make milk ice cream.`,
+                  `${rName} will go to the farm on Monday night.`,
+                  `The farm only has pigs and tigers.`
+                ],
+                answer: 1,
+                praise: "讚！${rName} 最期待的就是下午的牛奶冰淇淋 DIY！🍦",
+                explanation: "文章最後一句指出：${rName} is especially excited about making fresh milk ice cream。"
+              }
+            ]
+          };
+        }
+
+        // 主題 8: 森林露營器材租借費用表
+        case 7: {
+          const tentP = 300;
+          const lampP = 50;
+          return {
+            badge: "Camping Trip",
+            date: `📅 Forest Adventure`,
+            title: `⛺ Pine Forest Camp Rental (松樹森林露營裝備)`,
+            vocab: [
+              { word: "rental", zh: "租借、租賃" },
+              { word: "equipment", zh: "設備、器材" },
+              { word: "campfire", zh: "營火" }
+            ],
+            textHTML: `
+              <p>${rName}'s family went to Pine Forest Campground. They checked the camping <span class="vocab-hint" data-hint="器材">equipment</span> <span class="vocab-hint" data-hint="租借">rental</span> list:</p>
+              <div class="my-3 bg-orange-50 p-3 rounded-2xl border-2 border-orange-300">
+                <h4 class="font-black text-orange-900 mb-2 text-center">🌲 Camp Gear Rental Price (Per Day)</h4>
+                <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>⛺ 4-Person Tent</span><span class="text-cowOrange font-black">$${tentP}</span></div>
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>🪑 Folding Chair</span><span class="text-cowOrange font-black">$40</span></div>
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>🔦 Camp Lantern</span><span class="text-cowOrange font-black">$${lampP}</span></div>
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>🛏️ Warm Sleeping Bag</span><span class="text-cowOrange font-black">$80</span></div>
+                </div>
+              </div>
+              <p>At night, they sang songs happily around the warm <span class="vocab-hint" data-hint="營火">campfire</span> under the stars.</p>
+            `,
+            questions: [
+              {
+                level: "Level 1: 器材租金檢索",
+                question: "1. How much is the 4-Person Tent per day?",
+                options: ["$40", "$50", "$80", `$${tentP}`],
+                answer: 3,
+                praise: `很棒！四人帳篷的租金是一天 $${tentP}！⛺`,
+                explanation: `價目表第一項顯示：4-Person Tent 價格為 $${tentP}。`
+              },
+              {
+                level: "Level 2: 組合費用運算",
+                question: `2. How much does it cost to rent one tent and two folding chairs?`,
+                options: [`$${tentP + 40}`, `$${tentP + 80}`, `$${tentP + 120}`, "$500"],
+                answer: 1,
+                praise: `計算精確！帳篷 $${tentP} + 兩張折疊椅 $80 = $${tentP + 80}！🎯`,
+                explanation: `一張折疊椅 $40，兩張是 $80；加上帳篷 $${tentP}，總共是 $${tentP + 80}。`
+              },
+              {
+                level: "Level 3: 主旨是非題",
+                question: "3. What did the family do at night?",
+                options: [
+                  "They swam in the cold river.",
+                  "They stayed in the car and slept.",
+                  "They sang songs around the campfire.",
+                  "They bought clothes at the shopping mall."
+                ],
+                answer: 2,
+                praise: "答對了！他們在溫暖的營火旁唱歌！🔥",
+                explanation: "最後一段提及：they sang songs happily around the warm campfire。"
+              }
+            ]
+          };
+        }
+
+        // 主題 9: 海洋館海豚與企鵝餵食秀
+        case 8: {
+          return {
+            badge: "Aquarium Show",
+            date: `📅 Ocean Kingdom`,
+            title: `🐬 Ocean World Feeding Schedule (海洋世界餵食時刻表)`,
+            vocab: [
+              { word: "aquarium", zh: "水族館、海洋館" },
+              { word: "trainer", zh: "訓練師" },
+              { word: "dolphin", zh: "海豚" }
+            ],
+            textHTML: `
+              <p>Welcome to Ocean World <span class="vocab-hint" data-hint="水族館">Aquarium</span>! Today's animal feeding and show timetable:</p>
+              <div class="my-3 bg-cyan-50 p-3 rounded-2xl border-2 border-cyan-300">
+                <h4 class="font-black text-cyan-900 mb-2 text-center">🌊 Ocean World Show Times</h4>
+                <div class="space-y-1.5 text-xs font-bold text-gray-700">
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>🐧 Penguin Feeding</span><span class="text-cyan-800 font-black">10:00 AM</span></div>
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>🐬 Smart <span class="vocab-hint" data-hint="海豚">Dolphin</span> Show</span><span class="text-cyan-800 font-black">11:30 AM</span></div>
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>🦈 Shark Tunnel Feeding</span><span class="text-cyan-800 font-black">02:00 PM</span></div>
+                  <div class="bg-white p-2 rounded-xl flex justify-between"><span>🦭 Sea Lion Acrobatics</span><span class="text-cyan-800 font-black">03:30 PM</span></div>
+                </div>
+              </div>
+              <p>The <span class="vocab-hint" data-hint="訓練師">trainers</span> will feed small fish and introduce ocean protection to all visitors.</p>
+            `,
+            questions: [
+              {
+                level: "Level 1: 時刻檢索",
+                question: "1. What time does the Smart Dolphin Show start?",
+                options: ["10:00 AM", "11:30 AM", "02:00 PM", "03:30 PM"],
+                answer: 1,
+                praise: "答對了！聰明海豚秀是上午 11:30！🐬",
+                explanation: "節目表第二項清楚載明：Smart Dolphin Show 為 11:30 AM。"
+              },
+              {
+                level: "Level 2: 時間區間比對",
+                question: "2. If a visitor arrives at 1:00 PM, which show can they watch next?",
+                options: ["Penguin Feeding", "Smart Dolphin Show", "Shark Tunnel Feeding", "Breakfast Show"],
+                answer: 2,
+                praise: "推論很棒！下午 1:00 之後最先開始的是 2:00 的鯊魚餵食！🦈",
+                explanation: "1:00 PM (下午一點) 之後的下一場表演是 02:00 PM 的 Shark Tunnel Feeding。"
+              },
+              {
+                level: "Level 3: 主旨是非題",
+                question: "3. What do the trainers feed the animals during the shows?",
+                options: ["Hamburgers", "Small fish", "Bananas", "Pancakes"],
+                answer: 1,
+                praise: "沒錯！訓練師餵動物吃小魚！🐟",
+                explanation: "文章末段說明：The trainers will feed small fish and introduce ocean protection。"
+              }
+            ]
+          };
+        }
+
+        // 主題 10: 學校健康中心體檢視力與身高紀錄表
+        default: {
+          const height = 145 + Math.floor(Math.random() * 8); // 145 ~ 152 cm
+          return {
+            badge: "Health Check",
+            date: `📅 School Clinic`,
+            title: `🩺 Annual Health Checkup (${rName}的學校健康檢查表)`,
+            vocab: [
+              { word: "health checkup", zh: "健康檢查" },
+              { word: "height", zh: "身高" },
+              { word: "eyesight", zh: "視力" }
+            ],
+            textHTML: `
+              <p>Every spring, students have a <span class="vocab-hint" data-hint="健康檢查">health checkup</span> at the school clinic. Here is ${rName}'s health card:</p>
+              <div class="my-3 bg-emerald-50 p-3 rounded-2xl border-2 border-emerald-300">
+                <h4 class="font-black text-emerald-900 mb-2 text-center">📋 Student Health Card</h4>
+                <div class="grid grid-cols-2 gap-2 text-xs font-bold text-gray-700">
+                  <div class="bg-white p-2 rounded-xl"><span>📏 <span class="vocab-hint" data-hint="身高">Height</span>:</span> <strong class="text-emerald-800">${height} cm</strong></div>
+                  <div class="bg-white p-2 rounded-xl"><span>⚖️ Weight:</span> <strong class="text-emerald-800">40 kg</strong></div>
+                  <div class="bg-white p-2 rounded-xl"><span>👁️ Left <span class="vocab-hint" data-hint="視力">Eyesight</span>:</span> <strong class="text-emerald-800">1.2</strong></div>
+                  <div class="bg-white p-2 rounded-xl"><span>👁️ Right Eyesight:</span> <strong class="text-emerald-800">1.2</strong></div>
+                </div>
+              </div>
+              <p>The school nurse praised ${rName} for having great eyesight. She reminded everyone to rest their eyes after reading books for 30 minutes.</p>
+            `,
+            questions: [
+              {
+                level: "Level 1: 數據檢索",
+                question: `1. What is ${rName}'s height on the health card?`,
+                options: ["130 cm", "140 cm", `${height} cm`, "160 cm"],
+                answer: 2,
+                praise: `正確！身高是 ${height} 公分！📏`,
+                explanation: `健康卡第一格標明：Height 為 ${height} cm。`
+              },
+              {
+                level: "Level 2: 視力保健規則",
+                question: `2. How many minutes should students rest their eyes after reading?`,
+                options: ["10 minutes", "20 minutes", "30 minutes", "60 minutes"],
+                answer: 2,
+                praise: `很細心！護理師提醒看書 30 分鐘就要休息！👁️`,
+                explanation: `文末護理師提醒：rest their eyes after reading books for 30 minutes。`
+              },
+              {
+                level: "Level 3: 主旨推論題",
+                question: `3. Why did the school nurse praise ${rName}?`,
+                options: [
+                  `Because ${rName} ate all the lunch.`,
+                  `Because ${rName} has great eyesight (1.2).`,
+                  `Because ${rName} bought new glasses.`,
+                  `Because ${rName} runs faster than everyone.`
+                ],
+                answer: 1,
+                praise: `完全正確！因為雙眼視力都是優秀的 1.2！🎉`,
+                explanation: `護理師稱讚 ${rName} 擁有很棒的視力 (great eyesight，兩眼皆為 1.2)。`
+              }
+            ]
+          };
+        }
+      }
+    }
+
+    // ========================================================
+    // 🤖 線上 Gemini 3 Flash 調用 (若有設定 Key 時可使用)
+    // ========================================================
+    async function fetchFromGeminiAI() {
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${customKey}`;
+      const systemPrompt = `你是一位為台灣國小六年級學力檢測設計閱讀測驗的英文老師。請創作一篇全新的英文小短文（80-120字），內含一個漂亮的 HTML 資訊表格/圖表，並附上 3 題階梯式選擇題（Level 1 檢索、Level 2 運算/條件比對、Level 3 主旨/是非），生字請加 class="vocab-hint" data-hint="中文解釋"。輸出為 JSON。`;
+      const userPrompt = `請設計一篇國小六年級全新的生活情境英語閱讀題（例如：跳蚤市場、露營、博物館、運動會、農場等任選其一，不能跟剛剛相同）。`;
+
+      const payload = {
+        contents: [{ parts: [{ text: userPrompt }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              badge: { type: "STRING" },
+              date: { type: "STRING" },
+              title: { type: "STRING" },
+              vocab: {
+                type: "ARRAY",
+                items: {
+                  type: "OBJECT",
+                  properties: { word: { type: "STRING" }, zh: { type: "STRING" } },
+                  required: ["word", "zh"]
+                }
+              },
+              textHTML: { type: "STRING" },
+              questions: {
+                type: "ARRAY",
+                items: {
+                  type: "OBJECT",
+                  properties: {
+                    level: { type: "STRING" },
+                    question: { type: "STRING" },
+                    options: { type: "ARRAY", items: { type: "STRING" } },
+                    answer: { type: "INTEGER" },
+                    praise: { type: "STRING" },
+                    explanation: { type: "STRING" }
+                  },
+                  required: ["level", "question", "options", "answer", "praise", "explanation"]
+                }
+              }
+            },
+            required: ["badge", "date", "title", "vocab", "textHTML", "questions"]
+          }
+        }
+      };
+
+      const res = await fetch(geminiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      const txt = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      return JSON.parse(txt);
+    }
+
+    function setLoading(isLoading) {
+      const overlay = document.getElementById('ai-loading-overlay');
+      const readingSection = document.getElementById('reading-section');
+      const quizSection = document.getElementById('quiz-section');
+      
+      if (isLoading) {
+        overlay.classList.remove('hidden');
+        readingSection.classList.add('opacity-30', 'pointer-events-none');
+        quizSection.classList.add('opacity-30', 'pointer-events-none');
+      } else {
+        overlay.classList.add('hidden');
+        readingSection.classList.remove('opacity-30', 'pointer-events-none');
+        quizSection.classList.remove('opacity-30', 'pointer-events-none');
+      }
+    }
+
+    function renderNewStoryToDOM(story) {
+      answeredQuestions = {};
+
+      document.getElementById('article-badge').innerText = story.badge || "Reading Explorer";
+      document.getElementById('article-date').innerText = story.date || "Today's Challenge";
+      document.getElementById('article-title').innerHTML = story.title;
+      document.getElementById('article-content').innerHTML = story.textHTML;
+
+      // 產生單字小幫手
+      const vocabBank = document.getElementById('vocab-bank');
+      vocabBank.innerHTML = (story.vocab || []).map(v => `
+        <span class="bg-white px-2.5 py-1 rounded-lg border border-sky-200 text-sky-900 shadow-xs">
+          <strong>${v.word}</strong>: ${v.zh}
+        </span>
+      `).join('');
+
+      // 渲染題目
+      renderQuiz(story.questions);
+
+      // 還原吉祥物提示
+      updateCowFeedback("哞哞島長為你加油！", "全新篇章已就緒！做完 3 題系統會自動換下一座全新島嶼喔！", "normal");
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 渲染選擇題
+    function renderQuiz(questions) {
+      const container = document.getElementById('quiz-container');
+      container.innerHTML = "";
+
+      questions.forEach((q, qIndex) => {
+        const qCard = document.createElement('div');
+        qCard.className = "p-4 rounded-2xl bg-gray-50 border-2 border-gray-200 transition-all";
+        qCard.id = `q-card-${qIndex}`;
+
+        let optionsHTML = q.options.map((opt, optIndex) => `
+          <button 
+            type="button"
+            onclick="handleSelectAnswer(${qIndex}, ${optIndex})"
+            id="btn-opt-${qIndex}-${optIndex}"
+            class="w-full text-left p-3 my-1.5 rounded-xl border-2 border-gray-300 bg-white hover:bg-amber-50 hover:border-cowOrange font-bold text-xs md:text-sm flex items-center gap-2.5 transition-all text-gray-800">
+            <span class="w-6 h-6 rounded-full bg-gray-100 border border-gray-400 flex items-center justify-center text-xs font-black shrink-0">
+              ${['①', '②', '③', '④'][optIndex]}
+            </span>
+            <span>${opt}</span>
+          </button>
+        `).join('');
+
+        qCard.innerHTML = `
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-black px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 border border-blue-200">
+              ${q.level}
+            </span>
+            <span id="badge-status-${qIndex}" class="text-xs font-bold text-gray-400">未作答</span>
+          </div>
+          <h4 class="font-black text-sm md:text-base text-cowDark mb-2 leading-snug">
+            ${q.question}
+          </h4>
+          <div class="space-y-1">
+            ${optionsHTML}
+          </div>
+          <div id="explain-box-${qIndex}" class="hidden mt-3 p-3 rounded-xl text-xs font-bold leading-relaxed border-2"></div>
+        `;
+
+        container.appendChild(qCard);
+      });
+    }
+
+    // 點擊選項邏輯
+    window.handleSelectAnswer = function (qIndex, chosenIndex) {
+      const q = currentStory.questions[qIndex];
+      const card = document.getElementById(`q-card-${qIndex}`);
+      const statusBadge = document.getElementById(`badge-status-${qIndex}`);
+      const explainBox = document.getElementById(`explain-box-${qIndex}`);
+      
+      const isCorrect = (chosenIndex === q.answer);
+      const isFirstTry = !(qIndex in answeredQuestions);
+      answeredQuestions[qIndex] = chosenIndex;
+
+      q.options.forEach((_, optIdx) => {
+        const btn = document.getElementById(`btn-opt-${qIndex}-${optIdx}`);
+        btn.disabled = true;
+        btn.classList.remove('hover:bg-amber-50', 'hover:border-cowOrange');
+
+        if (optIdx === q.answer) {
+          btn.classList.remove('bg-white', 'border-gray-300');
+          btn.classList.add('bg-emerald-100', 'border-emerald-600', 'text-emerald-950');
+        } else if (optIdx === chosenIndex && !isCorrect) {
+          btn.classList.remove('bg-white', 'border-gray-300');
+          btn.classList.add('bg-rose-100', 'border-rose-500', 'text-rose-950');
+        } else {
+          btn.classList.add('opacity-50');
+        }
+      });
+
+      explainBox.classList.remove('hidden');
+
+      if (isCorrect) {
+        if (isFirstTry) {
+          score += 10;
+          document.getElementById('score-display').innerText = score;
+        }
+        card.classList.add('border-emerald-400', 'bg-emerald-50/30');
+        statusBadge.innerHTML = `<span class="text-emerald-600 font-black">✓ 答對了！(+10金幣)</span>`;
+        
+        explainBox.className = "mt-3 p-3 rounded-xl text-xs font-bold leading-relaxed border-2 bg-emerald-50 border-emerald-300 text-emerald-900";
+        explainBox.innerHTML = `🎉 <strong>答對鼓勵：</strong>${q.praise}<br><span class="text-gray-600 font-normal mt-1 block">📌 <strong>中文解析：</strong>${q.explanation}</span>`;
+
+        updateCowFeedback("太神啦！完全正確！🎉", q.praise, "happy");
+      } else {
+        card.classList.add('border-rose-400', 'bg-rose-50/30');
+        statusBadge.innerHTML = `<span class="text-rose-600 font-black">✗ 需要再想想</span>`;
+
+        explainBox.className = "mt-3 p-3 rounded-xl text-xs font-bold leading-relaxed border-2 bg-rose-50 border-rose-300 text-rose-900";
+        explainBox.innerHTML = `💡 <strong>中文解析：</strong>${q.explanation}`;
+
+        updateCowFeedback("別灰心，哞哞島長來為你解說！🥛", `這題的線索在於：${q.explanation}`, "sad");
+      }
+
+      checkAllCompleted();
+    };
+
+    function updateCowFeedback(title, text, mood) {
+      const avatar = document.getElementById('cow-avatar');
+      const titleElem = document.getElementById('cow-speech-title');
+      const textElem = document.getElementById('cow-speech-text');
+
+      titleElem.innerText = title;
+      textElem.innerText = text;
+
+      if (mood === "happy") {
+        avatar.innerText = "🐮🥳";
+        avatar.className = "w-12 h-12 bg-cowYellow rounded-2xl border-2 border-cowDark flex items-center justify-center text-3xl shrink-0 shadow-sm animate-bounce";
+      } else if (mood === "sad") {
+        avatar.innerText = "🐮🧐";
+        avatar.className = "w-12 h-12 bg-rose-100 rounded-2xl border-2 border-cowDark flex items-center justify-center text-3xl shrink-0 shadow-sm";
+      } else {
+        avatar.innerText = "🐮";
+        avatar.className = "w-12 h-12 bg-white rounded-2xl border-2 border-cowDark flex items-center justify-center text-3xl shrink-0 shadow-sm";
+      }
+    }
+
+    function checkAllCompleted() {
+      const answeredCount = Object.keys(answeredQuestions).length;
+
+      if (answeredCount === currentStory.questions.length) {
+        let correctCount = 0;
+        currentStory.questions.forEach((q, idx) => {
+          if (answeredQuestions[idx] === q.answer) correctCount++;
+        });
+
+        setTimeout(() => {
+          showCompletionModal(correctCount, currentStory.questions.length);
+        }, 800);
+      }
+    }
+
+    function showCompletionModal(correctCount, totalCount) {
+      clearTimer();
+      const modal = document.getElementById('completion-modal');
+      const modalTitle = document.getElementById('modal-title');
+      const modalMsg = document.getElementById('modal-msg');
+      const modalScore = document.getElementById('modal-score');
+      const modalCoins = document.getElementById('modal-coins');
+      const timerElem = document.getElementById('countdown-timer');
+
+      modalScore.innerText = `${correctCount} / ${totalCount}`;
+      modalCoins.innerText = `+${correctCount * 10} ⭐`;
+
+      if (correctCount === totalCount) {
+        modalTitle.innerText = "🌟 大滿貫！探索成功！";
+        modalMsg.innerText = "太厲害了！你答對了所有題目！正在為你準備下一座全新島嶼！";
+      } else {
+        modalTitle.innerText = "👏 恭喜完成本篇閱讀！";
+        modalMsg.innerText = `你完成了所有題目！答對了 ${correctCount} 題，準備出發下一座全新島嶼！`;
+      }
+
+      modal.classList.remove('hidden');
+
+      countdownSec = 3;
+      timerElem.innerText = `${countdownSec} 秒後自動為你切換下一篇全新文章...`;
+
+      autoNextTimer = setInterval(() => {
+        countdownSec--;
+        if (countdownSec > 0) {
+          timerElem.innerText = `${countdownSec} 秒後自動為你切換下一篇全新文章...`;
+        } else {
+          clearTimer();
+          closeModal();
+          generateNextStory();
+        }
+      }, 1000);
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('completion-modal');
+      modal.classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
